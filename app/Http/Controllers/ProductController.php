@@ -13,7 +13,10 @@ class ProductController extends Controller
     public function index()
     {
         // SELECT * FROM products
-        $products = Product::all();
+        $products = Product::with("category")->get();
+
+        // $products = Product::all();
+        // $products->load("category");
 
         return response()->json([
             "message" => "List of products",
@@ -21,11 +24,11 @@ class ProductController extends Controller
         ]);
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'title' => 'required|max:255',
+            'category_id' => 'filled|exists:categories,id',
             'description' => 'max:255',
             'price' => 'required|decimal:0,2|max:99999999.99|min:0.01',
             'image' => 'url:http,https'
@@ -52,6 +55,7 @@ class ProductController extends Controller
 
         $product = Product::create([
             "title"=> $request->title,
+            "category_id"=> $request->category_id,
             "description"=> $request->description,
             "price"=> $request->price,
             "image"=> $request->image,
@@ -66,7 +70,18 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::find($id);
+        // Method 1
+        // $product = Product::find($id);
+        // $product->load("category");
+
+        // Method 2
+        // $product = Product::with("category")->find($id);
+
+        // Method 3
+        $product = Product::with("category")
+            ->where("id", $id)
+            ->first();
+
         if ($product === null) {
             return response()->json([
                 "message" => "Product not found"
@@ -90,6 +105,7 @@ class ProductController extends Controller
 
         $validator = Validator::make($request->all(), [
             'title' => 'filled|max:255',
+            'category_id' => 'filled|exists:categories,id',
             'description' => 'max:255',
             'price' => 'decimal:0,2|max:99999999.99|min:0.01',
             'image' => 'url:http,https',
@@ -109,7 +125,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         $product = Product::find($id);
         if ($product === null) {
