@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Str;
 
 class ProductController extends Controller
@@ -85,6 +86,20 @@ class ProductController extends Controller
             return response()->json([
                 "message" => "Product not found"
             ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'title' => 'filled|max:255',
+            'description' => 'max:255',
+            'price' => 'decimal:0,2|max:99999999.99|min:0.01',
+            'image' => 'url:http,https',
+            'slug' => ['filled', Rule::unique('products', 'slug')->ignore($id)]
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                "message" => "Validation failed",
+                "errors" => $validator->errors()
+            ], 400);
         }
 
         $product->update($request->all());
