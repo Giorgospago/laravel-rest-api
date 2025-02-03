@@ -8,7 +8,7 @@ class AppController extends Controller
 {
     public function index() {
         return response()->json([
-            'message' => 'Welcome to my first REST API !!!',
+            'message' => 'Welcome to my first REST API !',
         ], 200);
     }
 }
